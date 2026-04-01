@@ -203,9 +203,9 @@ async function walkElement(
             });
           }
 
-          // 3. Text box starts after the SVG + gap
-          const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
-          const textX = svgRect.right - rootRect.left + gapPx;
+          // 3. Text box starts where the flex layout places the text (after icon + gap).
+          // svgRect.right already accounts for the gap in the flex container.
+          const textX = svgRect.right - rootRect.left;
           const textW = bounds.x + bounds.w - textX;
           console.log("[pptx] text (icon+pill)", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", { x: textX, y: bounds.y, w: textW, h: bounds.h });
           elements.push({
