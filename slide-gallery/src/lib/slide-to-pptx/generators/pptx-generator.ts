@@ -114,11 +114,7 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   const firstStyle = el.text[0].style;
 
   const hasBackground = el.background && el.background.type !== "none";
-  // A text box is "single line" if it's short in height OR all runs have no newlines.
-  // This catches pill containers (tall due to padding but containing one line of text).
-  const allText = el.text.map(r => r.text).join("");
-  const hasNoNewlines = !allText.includes("\n");
-  const isSingleLine = el.bounds.h <= 30 || (hasNoNewlines && el.text.length <= 4);
+  const isSingleLine = el.bounds.h <= 30;
 
   // Only extend width for plain single-line text with no background (labels like "CLIENTE").
   // Pills (hasBackground) use their exact bounds — the background defines the box size.
