@@ -349,7 +349,10 @@ async function walkElement(
           // For list items (no background): position the box so line 1 aligns with the
           // icon center, then text flows downward. Use valign:top so wrapped lines go down.
           const textX = iconRect.right - rootRect.left + gapPx;
-          const textW = bounds.x + bounds.w - textX;
+          const maxW = bounds.x + bounds.w - textX;
+          // For single-line list items, measure actual text width so box isn't wider than needed
+          const measuredW = !hasBackground ? measureContentWidth(htmlChild, win) : 0;
+          const textW = (!hasBackground && measuredW > 0 && measuredW < maxW) ? measuredW : maxW;
           const rawFontPt = parseFloat(style.fontSize) * (13.333 / 1920) * 72;
           // Estimate line height in px to offset y so line 1 top aligns with icon center
           const lineHeightPx = parseFloat(style.lineHeight) || bounds.h;
