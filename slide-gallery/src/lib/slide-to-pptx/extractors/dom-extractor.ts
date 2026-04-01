@@ -156,6 +156,31 @@ async function walkElement(
         continue;
       }
 
+      // If this is a flex/grid container with multiple direct children that each have
+      // their own styling (e.g. tech-bar with chip spans), recurse rather than treating
+      // the whole container as one text element.
+      const containerDisplay = style.display;
+      const isMultiChildContainer = (containerDisplay === "flex" || containerDisplay === "grid" || containerDisplay === "inline-flex")
+        && htmlChild.children.length > 2;
+      if (isMultiChildContainer) {
+        const bgContainer = readBackground(style);
+        if (bgContainer.type !== "none") {
+          const cr = readCornerRadius(style, bounds.w);
+          elements.push({
+            type: "rect",
+            bounds,
+            background: bgContainer,
+            cornerRadius: cr > 0 ? cr : undefined,
+            opacity: readOpacity(style),
+            zIndex: readZIndex(style) || order,
+          });
+        }
+        if (htmlChild.children.length > 0) {
+          order = await walkElement(htmlChild, slideRoot, elements, minSize, order, options, win);
+        }
+        continue;
+      }
+
       // Check if this is a text leaf: has direct text content and only inline children
       const textRuns = readTextRuns(htmlChild, win);
       const hasDirectText = textRuns.length > 0 && textRuns.some((r) => r.text.trim());
