@@ -319,17 +319,20 @@ async function walkElement(
             }
           }
 
-          // Text box starts after icon + gap
+          // Text box starts after icon + gap.
+          // Use the icon's vertical center as the text y anchor so text aligns with the icon.
           const textX = iconRect.right - rootRect.left + gapPx;
           const textW = bounds.x + bounds.w - textX;
+          const iconCenterY = iconRect.top - rootRect.top + iconRect.height / 2;
+          const textY = hasBackground ? bounds.y : iconCenterY - bounds.h / 2;
           const rawFontPt = parseFloat(style.fontSize) * (13.333 / 1920) * 72;
           elements.push({
             type: "text",
-            bounds: { x: textX, y: bounds.y, w: textW, h: bounds.h },
+            bounds: { x: textX, y: textY, w: textW, h: bounds.h },
             opacity: readOpacity(style),
             zIndex: zIdx + 1,
             text: textRuns,
-            valign: hasBackground ? "middle" : "top",
+            valign: "middle",
             align: "left",
             fontSizeOverridePt: rawFontPt < 8 ? +rawFontPt.toFixed(2) : undefined,
           });

@@ -284,7 +284,7 @@ function mapTextRun(run: TextRun, fontSizeOverridePt?: number, lineHeightOverrid
       color: toPptxColor(style.color),
       transparency: alphaToTransparency(style.color.alpha),
       charSpacing: style.letterSpacing > 0 ? pxToPoints(style.letterSpacing) : undefined,
-      lineSpacingMultiple: lineHeightOverride ?? (style.lineHeight > 1.5 ? 1.15 : style.lineHeight),
+      lineSpacingMultiple: lineHeightOverride ?? (style.lineHeight > 1.5 ? 1.3 : style.lineHeight),
     },
   };
 }
