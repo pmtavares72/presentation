@@ -306,7 +306,21 @@ async function walkElement(
         continue;
       }
 
-      // No direct text — recurse into children
+      // No direct text — emit background rect if visible, then recurse
+      const bgNoText = readBackground(style);
+      if (bgNoText.type !== "none") {
+        const cr = readCornerRadius(style, bounds.w);
+        const shadow = readShadow(style);
+        elements.push({
+          type: "rect",
+          bounds,
+          background: bgNoText,
+          cornerRadius: cr > 0 ? cr : undefined,
+          shadow,
+          opacity: readOpacity(style),
+          zIndex: readZIndex(style) || order,
+        });
+      }
       if (htmlChild.children.length > 0) {
         order = await walkElement(htmlChild, slideRoot, elements, minSize, order, options, win);
       }
