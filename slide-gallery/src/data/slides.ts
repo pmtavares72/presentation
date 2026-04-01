@@ -18,20 +18,11 @@ export const slides: SlideMetadata[] = [
     client: "Incarlopsa",
   },
   {
-    slug: "soquilab",
-    title: "SOQUILAB",
+    slug: "caso-de-uso",
+    title: "Caso de Uso",
     description:
       "Proyecto de gestion centralizada para Soquimica con arquitectura .NET y Blazor.",
-    filename: "soquilab_slide.html",
-    tags: [".NET", "Blazor", "Enterprise"],
-    client: "Soquimica, Lda.",
-  },
-  {
-    slug: "soquilab-v2",
-    title: "SOQUILAB v2",
-    description:
-      "Proyecto de gestion centralizada para Soquimica — versión con dimensiones fijas 1920×1080.",
-    filename: "soquilab_slide_v2.html",
+    filename: "caso_de_uso.html",
     tags: [".NET", "Blazor", "Enterprise"],
     client: "Soquimica, Lda.",
   },
