@@ -1,0 +1,18 @@
+{
+  "name": "slide-to-pptx",
+  "version": "0.1.0",
+  "description": "Convert HTML slides to editable PowerPoint files via DOM extraction and PptxGenJS",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "pptxgenjs": "^4.0.0"
+  },
+  "devDependencies": {
+    "pptxgenjs": "^4.0.1",
+    "typescript": "^5.0.0"
+  }
+}

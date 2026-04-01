@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/* ============================================
+   ILLUMINATED GALLERY — Design Tokens (Tailwind v4)
+   ============================================ */
+@theme inline {
+  /* Surface hierarchy */
+  --color-surface: #f5f7f9;
+  --color-surface-low: #eef1f3;
+  --color-surface-lowest: #ffffff;
+  --color-surface-bright: #fafcfe;
+
+  /* Primary (warm amber) */
+  --color-primary: #9a4000;
+  --color-primary-container: #fe8947;
+  --color-on-primary: #ffffff;
+
+  /* Secondary (indigo) */
+  --color-secondary: #4647d3;
+  --color-secondary-container: #e8e8fc;
+
+  /* Tertiary (rose) */
+  --color-tertiary: #b00d6a;
+  --color-tertiary-container: #fce8f3;
+
+  /* Text */
+  --color-on-surface: #2c2f31;
+  --color-on-surface-variant: #6b7280;
+  --color-outline-variant: #abadaf;
+
+  /* Timestamp brand */
+  --color-timestamp-red: #CE0E2D;
+
+  /* Fonts */
+  --font-display: var(--font-jakarta), sans-serif;
+  --font-body: var(--font-manrope), sans-serif;
+
+  /* Shadows */
+  --shadow-ambient: 0px 12px 32px rgba(44, 47, 49, 0.05);
+  --shadow-ambient-hover: 0px 16px 40px rgba(44, 47, 49, 0.08);
+
+  /* Border radius */
+  --radius-card: 1.5rem;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+:root {
+  --background: var(--color-surface);
+  --foreground: var(--color-on-surface);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+/* ============================================
+   LIGHT LEAK — card accent gradient
+   ============================================ */
+.light-leak::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-container) 0%, transparent 70%);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================
+   GLASS — glassmorphism effect
+   ============================================ */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ============================================
+   IFRAME THUMBNAIL SCALING
+   ============================================ */
+.slide-thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-card) var(--radius-card) 0 0;
+  background: var(--color-surface-low);
+}
+
+.slide-thumbnail-wrapper iframe {
+  width: 1920px;
+  height: 1080px;
+  transform-origin: top left;
+  border: none;
+  pointer-events: none;
+}

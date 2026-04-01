@@ -1,0 +1,19 @@
+# Dependencies
+slide-gallery/node_modules/
+packages/*/node_modules/
+
+# Next.js build output
+slide-gallery/.next/
+slide-gallery/out/
+
+# Claude settings
+.claude/
+
+# Extracted images (generated artifacts)
+extracted_images/
+
+# PPTX output files
+*.pptx
+
+# OS
+.DS_Store
