@@ -119,7 +119,7 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
     y: pxToInchesY(el.bounds.y),
     w: pxToInchesW(w),
     h: pxToInchesH(el.bounds.h),
-    valign: "middle",
+    valign: "top",
     align: firstStyle.textAlign,
     margin: 0,
     wrap: !isSingleLine,
