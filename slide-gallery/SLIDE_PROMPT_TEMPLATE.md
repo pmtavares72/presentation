@@ -1,5 +1,7 @@
 # Slide Generation Prompt Template
 
+When the user asks to create a new slide, invoke the `frontend-design` skill and pass this entire template plus the user's content description as the arguments.
+
 Use this template as a pre-prompt when generating new slides with the frontend-design skill.
 Append the user's content description at the end.
 
