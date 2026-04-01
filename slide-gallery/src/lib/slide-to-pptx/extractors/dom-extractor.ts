@@ -355,8 +355,7 @@ async function walkElement(
           const lineHeightPx = parseFloat(style.lineHeight) || bounds.h;
           const iconCenterY = iconRect.top - rootRect.top + iconRect.height / 2;
           const textY = hasBackground ? bounds.y : iconCenterY - lineHeightPx / 2;
-          // Give the text box enough height to flow downward (full remaining slide height)
-          const textH = hasBackground ? bounds.h : Math.max(bounds.h, slideRoot.offsetHeight - textY);
+          const textH = bounds.h;
           elements.push({
             type: "text",
             bounds: { x: textX, y: textY, w: textW, h: textH },
