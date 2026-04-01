@@ -161,13 +161,30 @@ async function walkElement(
       const hasDirectText = textRuns.length > 0 && textRuns.some((r) => r.text.trim());
 
       if (hasDirectText) {
-        console.log("[pptx] text", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", bounds);
+        const background = readBackground(style);
+        const cornerRadius = readCornerRadius(style, bounds.w);
+
+        // For single-line text elements without a background (plain labels), measure
+        // actual rendered text width using a Range so the box doesn't span the full grid cell.
+        const hasBackground = background.type !== "none";
+        let w = bounds.w;
+        if (!hasBackground && bounds.h <= 32) {
+          const measuredW = measureContentWidth(htmlChild, win);
+          if (measuredW > 0 && measuredW < bounds.w) {
+            w = measuredW;
+          }
+        }
+        const finalBounds = w !== bounds.w ? { ...bounds, w } : bounds;
+        console.log("[pptx] text", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", finalBounds);
+
         elements.push({
           type: "text",
-          bounds,
+          bounds: finalBounds,
           opacity: readOpacity(style),
           zIndex: readZIndex(style) || order,
           text: textRuns,
+          background: hasBackground ? background : undefined,
+          cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
         });
         continue;
       }
@@ -307,4 +324,28 @@ async function extractPseudoElement(
     opacity: parseFloat(style.opacity) || 1,
     zIndex: order,
   });
+}
+
+// Measure the actual rendered text width of an element using Canvas measureText.
+// This returns the natural text width independent of the container's layout width.
+function measureContentWidth(el: HTMLElement, win: Window = window): number {
+  try {
+    const style = win.getComputedStyle(el);
+    const fontSize = style.fontSize;
+    const fontWeight = style.fontWeight;
+    const fontFamily = style.fontFamily;
+    const text = el.textContent || "";
+    if (!text.trim()) return 0;
+
+    const canvas = el.ownerDocument.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return 0;
+
+    ctx.font = `${fontWeight} ${fontSize} ${fontFamily}`;
+    const letterSpacing = parseFloat(style.letterSpacing) || 0;
+    const measured = ctx.measureText(text).width + letterSpacing * Math.max(0, text.length - 1);
+    return Math.ceil(measured) + 4; // +4px margin so text doesn't clip at edge
+  } catch {
+    return 0;
+  }
 }

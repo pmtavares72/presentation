@@ -113,20 +113,28 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   const textRuns = el.text.map(mapTextRun);
   const firstStyle = el.text[0].style;
 
+  const hasBackground = el.background && el.background.type !== "none";
   const isSingleLine = el.bounds.h <= 30;
-  // Single-line: triple width so text doesn't wrap, keep exact height
-  // Multi-line: keep exact width, but extend height to remaining slide space
-  // so text is never clipped when font size bumps up to minimum 8pt
-  const w = isSingleLine ? Math.max(el.bounds.w, el.bounds.w * 3) : el.bounds.w;
-  const h = isSingleLine ? el.bounds.h : Math.max(el.bounds.h, 1080 - el.bounds.y);
+
+  // Only extend width for plain single-line text with no background (labels like "CLIENTE").
+  // Pills (hasBackground) use their exact bounds — the background defines the box size.
+  // Plain single-line labels get wider box so text doesn't clip, but not tripled.
+  const w = (!hasBackground && isSingleLine)
+    ? Math.max(el.bounds.w, el.bounds.w * 1.5)
+    : el.bounds.w;
+  const h = el.bounds.h;
+
+  // Pills: center text; plain text: top-align
+  const valign = hasBackground ? "middle" : "top";
+  const align = hasBackground ? "center" : firstStyle.textAlign;
 
   const opts: Record<string, unknown> = {
     x: pxToInchesX(el.bounds.x),
     y: pxToInchesY(el.bounds.y),
     w: pxToInchesW(w),
     h: pxToInchesH(h),
-    valign: "top",
-    align: firstStyle.textAlign,
+    valign,
+    align,
     margin: 0,
     wrap: !isSingleLine,
   };

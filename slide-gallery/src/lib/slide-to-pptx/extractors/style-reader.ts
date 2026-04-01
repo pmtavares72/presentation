@@ -25,11 +25,13 @@ export function getBounds(el: Element, slideRoot: Element): Bounds {
     node = node.offsetParent as HTMLElement | null;
   }
 
+  const htmlEl = el as HTMLElement;
+
   return {
     x,
     y,
-    w: (el as HTMLElement).offsetWidth,
-    h: (el as HTMLElement).offsetHeight,
+    w: htmlEl.offsetWidth,
+    h: htmlEl.offsetHeight,
   };
 }
 
