@@ -186,8 +186,9 @@ async function walkElement(
           // 2. SVG icon as image — use getBoundingClientRect relative to slideRoot
           const rootRect = slideRoot.getBoundingClientRect();
           const svgRect = svgChild.getBoundingClientRect();
+          const paddingLeft = parseFloat(win.getComputedStyle(htmlChild).paddingLeft) || 0;
           const svgBounds = {
-            x: svgRect.left - rootRect.left,
+            x: bounds.x + paddingLeft,
             y: svgRect.top - rootRect.top,
             w: svgRect.width,
             h: svgRect.height,
@@ -203,9 +204,9 @@ async function walkElement(
             });
           }
 
-          // 3. Text box starts where the flex layout places the text (after icon + gap).
-          // svgRect.right already accounts for the gap in the flex container.
-          const textX = svgRect.right - rootRect.left;
+          // 3. Text box starts after icon + flex gap
+          const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
+          const textX = svgRect.right - rootRect.left + gapPx;
           const textW = bounds.x + bounds.w - textX;
           console.log("[pptx] text (icon+pill)", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", { x: textX, y: bounds.y, w: textW, h: bounds.h });
           // Use true px→pt conversion without the 8pt floor for icon+pill labels
