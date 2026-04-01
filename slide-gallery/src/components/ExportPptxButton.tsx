@@ -72,37 +72,37 @@ async function exportSlide(filename: string, title: string) {
   iframeDoc.head.appendChild(freezeStyle);
   slideEl.getBoundingClientRect(); // force reflow
 
-  // ── Remove scale transform so we work at true 1920×1080 ──────────────────
+  // ── Force iframe to 1920×1080 so layout and getBoundingClientRect use true slide coords ──
+  const originalIframeWidth = iframe.style.width;
+  const originalIframeHeight = iframe.style.height;
+  iframe.style.width = "1920px";
+  iframe.style.height = "1080px";
+
+  // Remove scale transform. Do this AFTER resizing the iframe because the
+  // slide's scaleSlide() listener fires on resize and reapplies a transform.
   const originalTransform = slideEl.style.transform;
   slideEl.style.transform = "none";
-  slideEl.getBoundingClientRect();
+  // Wait one microtask for any resize listeners to fire, then remove again
+  await new Promise<void>(resolve => setTimeout(resolve, 50));
+  slideEl.style.transform = "none";
+  slideEl.getBoundingClientRect(); // force reflow at true 1920×1080
 
-  // ── Step 1: Capture background-only image ────────────────────────────────
-  // Strategy: hide all content elements (everything that is NOT structural bg),
-  // screenshot the slide, then restore.
-  //
-  // "Background" = the slide base color + .header-area (gradient + circles via ::before/::after).
-  // "Content"    = everything inside .header-area's children, .cards-row, .tech-bar, etc.
-  //
-  // We hide content by hiding all direct children of the slide EXCEPT .header-area,
-  // and hide all children inside .header-area (keeping the area itself with its CSS bg).
+  // ── Step 1: Capture background image ─────────────────────────────────────
+  // Hide the children of every structural container, keeping only the
+  // container shapes (gradients, card whites, tech bar). This gives us a
+  // clean background at full 1920×1080 with correct proportions.
+  const hiddenEls: { el: HTMLElement; vis: string }[] = [];
 
-  const slideChildren = Array.from(slideEl.children) as HTMLElement[];
-  const hiddenChildren: { el: HTMLElement; vis: string }[] = [];
-
-  for (const child of slideChildren) {
-    const cls = child.className || "";
-    if (cls.includes("header-area")) {
-      // Keep header-area itself (for gradient bg + pseudo-elements), but hide its children
-      for (const inner of Array.from(child.children) as HTMLElement[]) {
-        hiddenChildren.push({ el: inner, vis: inner.style.visibility });
-        inner.style.visibility = "hidden";
-      }
-    } else {
-      // Hide non-background top-level elements entirely
-      hiddenChildren.push({ el: child, vis: child.style.visibility });
+  function hideChildren(parent: Element) {
+    for (const child of Array.from(parent.children) as HTMLElement[]) {
+      hiddenEls.push({ el: child, vis: child.style.visibility });
       child.style.visibility = "hidden";
     }
+  }
+
+  // Hide all children of every top-level slide section
+  for (const child of Array.from(slideEl.children) as HTMLElement[]) {
+    hideChildren(child);
   }
 
   const html2canvas = (await import("html2canvas")).default;
@@ -124,11 +124,9 @@ async function exportSlide(filename: string, title: string) {
       backgroundColor: null,
       logging: false,
     });
-    console.log("[pptx] html2canvas output:", canvas.width, "×", canvas.height);
     backgroundImageData = canvas.toDataURL("image/png");
   } finally {
-    // Restore hidden elements
-    for (const { el, vis } of hiddenChildren) {
+    for (const { el, vis } of hiddenEls) {
       el.style.visibility = vis;
     }
   }
@@ -148,7 +146,9 @@ async function exportSlide(filename: string, title: string) {
     iframeWindow: iframeWin,
   });
 
-  // Restore transform and unfreeze
+  // Restore iframe size, transform and unfreeze
+  iframe.style.width = originalIframeWidth;
+  iframe.style.height = originalIframeHeight;
   slideEl.style.transform = originalTransform;
   freezeStyle.remove();
 

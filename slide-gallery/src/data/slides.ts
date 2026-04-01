@@ -27,6 +27,15 @@ export const slides: SlideMetadata[] = [
     client: "Soquimica, Lda.",
   },
   {
+    slug: "soquilab-v2",
+    title: "SOQUILAB v2",
+    description:
+      "Proyecto de gestion centralizada para Soquimica — versión con dimensiones fijas 1920×1080.",
+    filename: "soquilab_slide_v2.html",
+    tags: [".NET", "Blazor", "Enterprise"],
+    client: "Soquimica, Lda.",
+  },
+  {
     slug: "desarrollo",
     title: "Desarrollo",
     description:

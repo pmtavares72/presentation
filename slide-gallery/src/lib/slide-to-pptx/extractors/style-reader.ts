@@ -11,28 +11,25 @@ import type {
 import { parseColor } from "../generators/color-mapper";
 import { parseGradient } from "../generators/gradient-mapper";
 
-// Get element bounds relative to the slide root
+// Get element bounds relative to the slide root.
+// Uses offsetLeft/offsetTop walking up the DOM to slideRoot — this gives true
+// layout coordinates independent of CSS transforms and viewport size.
 export function getBounds(el: Element, slideRoot: Element): Bounds {
-  const elRect = el.getBoundingClientRect();
-  const rootRect = slideRoot.getBoundingClientRect();
+  let x = 0;
+  let y = 0;
+  let node: HTMLElement | null = el as HTMLElement;
 
-  // Account for any transform scale on the slide root
-  const rootStyle = getComputedStyle(slideRoot);
-  const transform = rootStyle.transform;
-  let scale = 1;
-  if (transform && transform !== "none") {
-    const matrixMatch = transform.match(/matrix\(([^)]+)\)/);
-    if (matrixMatch) {
-      const values = matrixMatch[1].split(",").map((v) => parseFloat(v.trim()));
-      scale = values[0]; // scaleX from matrix(a, b, c, d, tx, ty)
-    }
+  while (node && node !== slideRoot) {
+    x += node.offsetLeft;
+    y += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
   }
 
   return {
-    x: (elRect.left - rootRect.left) / scale,
-    y: (elRect.top - rootRect.top) / scale,
-    w: elRect.width / scale,
-    h: elRect.height / scale,
+    x,
+    y,
+    w: (el as HTMLElement).offsetWidth,
+    h: (el as HTMLElement).offsetHeight,
   };
 }
 

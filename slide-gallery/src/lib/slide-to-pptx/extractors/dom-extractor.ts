@@ -161,6 +161,7 @@ async function walkElement(
       const hasDirectText = textRuns.length > 0 && textRuns.some((r) => r.text.trim());
 
       if (hasDirectText) {
+        console.log("[pptx] text", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", bounds);
         elements.push({
           type: "text",
           bounds,

@@ -42,9 +42,15 @@ export async function generatePptx(
 
   const slide = pres.addSlide();
 
-  // If a rasterized background image is provided, use it instead of CSS reconstruction
+  // If a rasterized background image is provided, place it as a full-slide image
+  // at exact 0,0 position rather than using slide.background (which stretches to fill).
   if (options.backgroundImageData) {
-    slide.background = { data: options.backgroundImageData };
+    slide.addImage({
+      data: options.backgroundImageData,
+      x: 0, y: 0,
+      w: slideWidthIn,
+      h: slideHeightIn,
+    });
   } else {
     applySlideBackground(slide, descriptor.background);
   }
@@ -107,18 +113,18 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   const textRuns = el.text.map(mapTextRun);
   const firstStyle = el.text[0].style;
 
-  // For single-line text (height ≤ 30px in slide px), extend width generously
-  // and disable wrap to prevent text overflowing a too-narrow bounding box.
   const isSingleLine = el.bounds.h <= 30;
-  const w = isSingleLine
-    ? Math.max(el.bounds.w, el.bounds.w * 3)  // triple the width as safety margin
-    : el.bounds.w;
+  // Single-line: triple width so text doesn't wrap, keep exact height
+  // Multi-line: keep exact width, but extend height to remaining slide space
+  // so text is never clipped when font size bumps up to minimum 8pt
+  const w = isSingleLine ? Math.max(el.bounds.w, el.bounds.w * 3) : el.bounds.w;
+  const h = isSingleLine ? el.bounds.h : Math.max(el.bounds.h, 1080 - el.bounds.y);
 
   const opts: Record<string, unknown> = {
     x: pxToInchesX(el.bounds.x),
     y: pxToInchesY(el.bounds.y),
     w: pxToInchesW(w),
-    h: pxToInchesH(el.bounds.h),
+    h: pxToInchesH(h),
     valign: "top",
     align: firstStyle.textAlign,
     margin: 0,
