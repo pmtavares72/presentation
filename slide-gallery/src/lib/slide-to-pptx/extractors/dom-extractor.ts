@@ -169,6 +169,50 @@ async function walkElement(
         // 1. Emit the pill background as a rect at the full bounds
         // 2. Emit the SVG as an image at its true position
         // 3. Emit the text box offset past the icon (no background on text element)
+        // If this background container has multiple direct span children (e.g. stat-box
+        // with a number span + label span), emit background rect + each child separately.
+        const directSpans = Array.from(htmlChild.querySelectorAll(":scope > span"));
+        if (directSpans.length >= 2 && hasBackground) {
+          const zIdx = readZIndex(style) || order;
+          const rootRect = slideRoot.getBoundingClientRect();
+
+          // Background rect covering full element
+          elements.push({
+            type: "rect",
+            bounds,
+            background,
+            cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
+            opacity: readOpacity(style),
+            zIndex: zIdx,
+          });
+
+          // Each span as its own text element
+          for (const span of directSpans) {
+            const spanEl = span as HTMLElement;
+            const spanStyle = win.getComputedStyle(spanEl);
+            const spanRuns = readTextRuns(spanEl, win);
+            if (!spanRuns.some(r => r.text.trim())) continue;
+
+            const spanRect = spanEl.getBoundingClientRect();
+            const spanBounds = {
+              x: spanRect.left - rootRect.left,
+              y: spanRect.top - rootRect.top,
+              w: spanRect.width,
+              h: spanRect.height,
+            };
+            elements.push({
+              type: "text",
+              bounds: spanBounds,
+              opacity: readOpacity(style),
+              zIndex: zIdx + 1,
+              text: spanRuns,
+              valign: "middle",
+              align: (["center","right","justify"].includes(spanStyle.textAlign) ? spanStyle.textAlign : "left") as "left"|"center"|"right"|"justify",
+            });
+          }
+          continue;
+        }
+
         const svgChild = htmlChild.querySelector(":scope > svg") as SVGElement | null;
         if (svgChild && hasBackground) {
           const zIdx = readZIndex(style) || order;
