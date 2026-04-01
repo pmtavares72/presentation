@@ -176,10 +176,19 @@ async function walkElement(
           const zIdx = readZIndex(style) || order;
           const rootRect = slideRoot.getBoundingClientRect();
 
+          // Use getBoundingClientRect for the container too — consistent coordinate system
+          const containerRect = htmlChild.getBoundingClientRect();
+          const containerBounds = {
+            x: containerRect.left - rootRect.left,
+            y: containerRect.top - rootRect.top,
+            w: containerRect.width,
+            h: containerRect.height,
+          };
+
           // Background rect covering full element
           elements.push({
             type: "rect",
-            bounds,
+            bounds: containerBounds,
             background,
             cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
             opacity: readOpacity(style),
@@ -187,6 +196,7 @@ async function walkElement(
           });
 
           // Each span as its own text element
+          const paddingRight = parseFloat(win.getComputedStyle(htmlChild).paddingRight) || 0;
           for (const span of directSpans) {
             const spanEl = span as HTMLElement;
             const spanStyle = win.getComputedStyle(spanEl);
@@ -195,19 +205,13 @@ async function walkElement(
 
             const spanRect = spanEl.getBoundingClientRect();
             const spanX = spanRect.left - rootRect.left;
-            // Width: from span's left edge to container's right edge (minus right padding)
-            const paddingRight = parseFloat(win.getComputedStyle(htmlChild).paddingRight) || 0;
-            const spanW = (bounds.x + bounds.w - paddingRight) - spanX;
-            const isMultiLine = spanRuns.some(r => r.text.includes("\n")) || spanEl.querySelector("br") !== null;
-            const spanBounds = {
-              x: spanX,
-              y: bounds.y,
-              w: spanW,
-              h: bounds.h,
-            };
+            // Width: from span's left to container's right edge minus padding
+            const spanW = (containerBounds.x + containerBounds.w - paddingRight) - spanX;
+            const isMultiLine = spanEl.querySelector("br") !== null;
+            console.log("[pptx] span", JSON.stringify(spanRuns.map(r=>r.text).join("")), "x:", spanX, "w:", spanW, "containerRight:", containerBounds.x + containerBounds.w, "paddingRight:", paddingRight);
             elements.push({
               type: "text",
-              bounds: spanBounds,
+              bounds: { x: spanX, y: containerBounds.y, w: spanW, h: containerBounds.h },
               opacity: readOpacity(style),
               zIndex: zIdx + 1,
               text: spanRuns,
