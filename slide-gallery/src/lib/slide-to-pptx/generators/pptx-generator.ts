@@ -298,7 +298,8 @@ function resolveFontFace(family: string, weight: number): string {
   if (weight >= 900) return `${family} Black`;
   if (weight >= 800) return `${family} ExtraBold`;
   if (weight >= 700) return family; // bold flag handles 700
-  return family;
+  if (weight >= 500) return `${family} Medium`;
+  return `${family} Regular`; // 400 — explicit variant avoids PowerPoint defaulting to Medium
 }
 
 function mapShadow(shadow: ShadowDescriptor): object {
