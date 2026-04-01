@@ -114,9 +114,7 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   const firstStyle = el.text[0].style;
 
   const hasBackground = el.background && el.background.type !== "none";
-  // Pills (elements with background) are always single-line by design.
-  // Plain text boxes use height to determine wrapping.
-  const isSingleLine = el.bounds.h <= 30 || hasBackground;
+  const isSingleLine = el.bounds.h <= 30;
 
   // Only extend width for plain single-line text with no background (labels like "CLIENTE").
   // Pills (hasBackground) use their exact bounds — the background defines the box size.
@@ -126,9 +124,11 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
     : el.bounds.w;
   const h = el.bounds.h;
 
-  // Pills: center text; plain text: top-align
+  // Pills: center text; plain text: top-align.
+  // Long-text pills (info tags) use left align to avoid overflow.
+  const allText = el.text.map(r => r.text).join("");
   const valign = hasBackground ? "middle" : "top";
-  const align = hasBackground ? "center" : firstStyle.textAlign;
+  const align = hasBackground && allText.length <= 20 ? "center" : firstStyle.textAlign;
 
   const opts: Record<string, unknown> = {
     x: pxToInchesX(el.bounds.x),
