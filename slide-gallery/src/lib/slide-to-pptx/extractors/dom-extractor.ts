@@ -205,10 +205,13 @@ async function walkElement(
 
             const spanRect = spanEl.getBoundingClientRect();
             const spanX = spanRect.left - rootRect.left;
-            // Width: from span's left to container's right edge minus padding
-            const spanW = (containerBounds.x + containerBounds.w - paddingRight) - spanX;
+            // Width: from span's left to container right edge
+            const spanW = (containerBounds.x + containerBounds.w) - spanX;
             const isMultiLine = spanEl.querySelector("br") !== null;
-            console.log("[pptx] span", JSON.stringify(spanRuns.map(r=>r.text).join("")), "x:", spanX, "w:", spanW, "containerRight:", containerBounds.x + containerBounds.w, "paddingRight:", paddingRight);
+            // Bypass the 8pt font floor for small spans — use true px→pt so the text
+            // fits within the natural container width without inflation.
+            const rawFontPt = parseFloat(spanStyle.fontSize) * (13.333 / 1920) * 72;
+            console.log("[pptx] span", JSON.stringify(spanRuns.map(r=>r.text).join("")), "x:", spanX, "w:", spanW, "fontSize:", rawFontPt.toFixed(2)+"pt");
             elements.push({
               type: "text",
               bounds: { x: spanX, y: containerBounds.y, w: spanW, h: containerBounds.h },
@@ -218,6 +221,7 @@ async function walkElement(
               valign: "middle",
               align: (["center","right","justify"].includes(spanStyle.textAlign) ? spanStyle.textAlign : "left") as "left"|"center"|"right"|"justify",
               lineHeightOverride: isMultiLine ? 1.0 : undefined,
+              fontSizeOverridePt: +rawFontPt.toFixed(2),
             });
           }
           continue;
