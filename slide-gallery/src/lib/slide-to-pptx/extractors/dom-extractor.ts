@@ -165,10 +165,25 @@ async function walkElement(
         const cornerRadius = readCornerRadius(style, bounds.w);
         const hasBackground = background.type !== "none";
 
-        // If this element has a direct SVG child (e.g. icon in a pill), extract the SVG
-        // as an image using getBoundingClientRect (SVG elements have no offsetWidth/Height).
+        // If this element has a direct SVG child (e.g. icon in a pill):
+        // 1. Emit the pill background as a rect at the full bounds
+        // 2. Emit the SVG as an image at its true position
+        // 3. Emit the text box offset past the icon (no background on text element)
         const svgChild = htmlChild.querySelector(":scope > svg") as SVGElement | null;
-        if (svgChild) {
+        if (svgChild && hasBackground) {
+          const zIdx = readZIndex(style) || order;
+
+          // 1. Pill background rect covering full element bounds
+          elements.push({
+            type: "rect",
+            bounds,
+            background,
+            cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
+            opacity: readOpacity(style),
+            zIndex: zIdx,
+          });
+
+          // 2. SVG icon as image — use getBoundingClientRect relative to slideRoot
           const rootRect = slideRoot.getBoundingClientRect();
           const svgRect = svgChild.getBoundingClientRect();
           const svgBounds = {
@@ -183,36 +198,36 @@ async function walkElement(
               type: "image",
               bounds: svgBounds,
               image: { src: "inline-svg", dataUrl },
-              zIndex: readZIndex(style) || order,
+              zIndex: zIdx + 1,
               opacity: readOpacity(style),
             });
           }
-        }
 
-        // Shift text box past the SVG icon if present
-        let textOffsetX = 0;
-        if (svgChild) {
-          const rootRect = slideRoot.getBoundingClientRect();
-          const svgRect = svgChild.getBoundingClientRect();
+          // 3. Text box starts after the SVG + gap
           const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
-          textOffsetX = (svgRect.right - rootRect.left) - bounds.x + gapPx;
+          const textX = svgRect.right - rootRect.left + gapPx;
+          const textW = bounds.x + bounds.w - textX;
+          console.log("[pptx] text (icon+pill)", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", { x: textX, y: bounds.y, w: textW, h: bounds.h });
+          elements.push({
+            type: "text",
+            bounds: { x: textX, y: bounds.y, w: textW, h: bounds.h },
+            opacity: readOpacity(style),
+            zIndex: zIdx + 1,
+            text: textRuns,
+          });
+          continue;
         }
 
         // For single-line text elements without a background (plain labels), measure
         // actual rendered text width using canvas so the box doesn't span the full grid cell.
-        let w = bounds.w - textOffsetX;
+        let w = bounds.w;
         if (!hasBackground && bounds.h <= 32) {
           const measuredW = measureContentWidth(htmlChild, win);
-          if (measuredW > 0 && measuredW < w) {
+          if (measuredW > 0 && measuredW < bounds.w) {
             w = measuredW;
           }
         }
-        const finalBounds = {
-          x: bounds.x + textOffsetX,
-          y: bounds.y,
-          w,
-          h: bounds.h,
-        };
+        const finalBounds = w !== bounds.w ? { ...bounds, w } : bounds;
         console.log("[pptx] text", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", finalBounds);
 
         elements.push({
