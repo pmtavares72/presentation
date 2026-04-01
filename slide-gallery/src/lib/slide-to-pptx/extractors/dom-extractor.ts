@@ -165,16 +165,54 @@ async function walkElement(
         const cornerRadius = readCornerRadius(style, bounds.w);
         const hasBackground = background.type !== "none";
 
+        // If this element has a direct SVG child (e.g. icon in a pill), extract the SVG
+        // as an image using getBoundingClientRect (SVG elements have no offsetWidth/Height).
+        const svgChild = htmlChild.querySelector(":scope > svg") as SVGElement | null;
+        if (svgChild) {
+          const rootRect = slideRoot.getBoundingClientRect();
+          const svgRect = svgChild.getBoundingClientRect();
+          const svgBounds = {
+            x: svgRect.left - rootRect.left,
+            y: svgRect.top - rootRect.top,
+            w: svgRect.width,
+            h: svgRect.height,
+          };
+          const dataUrl = await svgToDataUrl(svgChild, slideRoot.ownerDocument);
+          if (dataUrl && svgBounds.w > 0) {
+            elements.push({
+              type: "image",
+              bounds: svgBounds,
+              image: { src: "inline-svg", dataUrl },
+              zIndex: readZIndex(style) || order,
+              opacity: readOpacity(style),
+            });
+          }
+        }
+
+        // Shift text box past the SVG icon if present
+        let textOffsetX = 0;
+        if (svgChild) {
+          const rootRect = slideRoot.getBoundingClientRect();
+          const svgRect = svgChild.getBoundingClientRect();
+          const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
+          textOffsetX = (svgRect.right - rootRect.left) - bounds.x + gapPx;
+        }
+
         // For single-line text elements without a background (plain labels), measure
         // actual rendered text width using canvas so the box doesn't span the full grid cell.
-        let w = bounds.w;
+        let w = bounds.w - textOffsetX;
         if (!hasBackground && bounds.h <= 32) {
           const measuredW = measureContentWidth(htmlChild, win);
-          if (measuredW > 0 && measuredW < bounds.w) {
+          if (measuredW > 0 && measuredW < w) {
             w = measuredW;
           }
         }
-        const finalBounds = w !== bounds.w ? { ...bounds, w } : bounds;
+        const finalBounds = {
+          x: bounds.x + textOffsetX,
+          y: bounds.y,
+          w,
+          h: bounds.h,
+        };
         console.log("[pptx] text", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", finalBounds);
 
         elements.push({
@@ -198,7 +236,7 @@ async function walkElement(
 
     // ── Full extraction mode ───────────────────────────────────────────────
     if (tag === "svg") {
-      const dataUrl = await svgToDataUrl(htmlChild as unknown as SVGElement);
+      const dataUrl = await svgToDataUrl(htmlChild as unknown as SVGElement, slideRoot.ownerDocument);
       if (dataUrl) {
         elements.push({
           type: "image",

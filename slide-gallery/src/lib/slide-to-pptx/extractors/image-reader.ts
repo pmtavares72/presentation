@@ -35,34 +35,46 @@ export async function imageToDataUrl(
   }
 }
 
-// Convert an inline SVG element to a data URL
+// Convert an inline SVG element to a data URL.
+// Pass the owning document (e.g. iframe's doc) so canvas is created in the right context.
 export async function svgToDataUrl(
-  svg: SVGElement
+  svg: SVGElement,
+  doc: Document = document
 ): Promise<string | undefined> {
   try {
+    // Ensure SVG has explicit width/height so canvas renders at correct size
+    const rect = svg.getBoundingClientRect();
+    const w = rect.width || 24;
+    const h = rect.height || 24;
+
     const serializer = new XMLSerializer();
-    const svgString = serializer.serializeToString(svg);
+    // Clone with explicit dimensions so the image renders at the right size
+    const clone = svg.cloneNode(true) as SVGElement;
+    clone.setAttribute("width", String(w));
+    clone.setAttribute("height", String(h));
+    const svgString = serializer.serializeToString(clone);
     const blob = new Blob([svgString], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
 
     const img = new Image();
+    img.width = w;
+    img.height = h;
     await new Promise<void>((resolve, reject) => {
       img.onload = () => resolve();
       img.onerror = () => reject(new Error("SVG render failed"));
       img.src = url;
     });
 
-    const canvas = document.createElement("canvas");
-    // Render at 2x for crisp output
-    const scale = 2;
-    canvas.width = (svg.getBoundingClientRect().width || 100) * scale;
-    canvas.height = (svg.getBoundingClientRect().height || 100) * scale;
+    const scale = 2; // Render at 2x for crisp output
+    const canvas = doc.createElement("canvas");
+    canvas.width = w * scale;
+    canvas.height = h * scale;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return undefined;
 
     ctx.scale(scale, scale);
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, w, h);
 
     URL.revokeObjectURL(url);
     return canvas.toDataURL("image/png");
