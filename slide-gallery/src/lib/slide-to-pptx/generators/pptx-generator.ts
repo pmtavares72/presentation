@@ -110,7 +110,7 @@ function renderElement(slide: PptxGenJS.Slide, el: SlideElement): void {
 function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   if (!el.text || el.text.length === 0) return;
 
-  const textRuns = el.text.map(run => mapTextRun(run, el.fontSizeOverridePt));
+  const textRuns = el.text.map(run => mapTextRun(run, el.fontSizeOverridePt, el.lineHeightOverride));
   const firstStyle = el.text[0].style;
 
   const hasBackground = el.background && el.background.type !== "none";
@@ -262,7 +262,7 @@ function applyFill(
   }
 }
 
-function mapTextRun(run: TextRun, fontSizeOverridePt?: number): object {
+function mapTextRun(run: TextRun, fontSizeOverridePt?: number, lineHeightOverride?: number): object {
   const style = run.style;
   let text = run.text;
 
@@ -284,7 +284,7 @@ function mapTextRun(run: TextRun, fontSizeOverridePt?: number): object {
       color: toPptxColor(style.color),
       transparency: alphaToTransparency(style.color.alpha),
       charSpacing: style.letterSpacing > 0 ? pxToPoints(style.letterSpacing) : undefined,
-      lineSpacingMultiple: style.lineHeight > 1.5 ? 1.15 : style.lineHeight,
+      lineSpacingMultiple: lineHeightOverride ?? (style.lineHeight > 1.5 ? 1.15 : style.lineHeight),
     },
   };
 }

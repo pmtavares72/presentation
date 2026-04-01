@@ -194,12 +194,13 @@ async function walkElement(
             if (!spanRuns.some(r => r.text.trim())) continue;
 
             const spanRect = spanEl.getBoundingClientRect();
-            // Extend width to right edge of parent container (minus right padding)
-            // so multi-line labels don't get clipped
+            const spanX = spanRect.left - rootRect.left;
+            // Width: from span's left edge to container's right edge (minus right padding)
             const paddingRight = parseFloat(win.getComputedStyle(htmlChild).paddingRight) || 0;
-            const spanW = Math.max(spanRect.width, (bounds.x + bounds.w - paddingRight) - (spanRect.left - rootRect.left));
+            const spanW = (bounds.x + bounds.w - paddingRight) - spanX;
+            const isMultiLine = spanRuns.some(r => r.text.includes("\n")) || spanEl.querySelector("br") !== null;
             const spanBounds = {
-              x: spanRect.left - rootRect.left,
+              x: spanX,
               y: bounds.y,
               w: spanW,
               h: bounds.h,
@@ -212,6 +213,7 @@ async function walkElement(
               text: spanRuns,
               valign: "middle",
               align: (["center","right","justify"].includes(spanStyle.textAlign) ? spanStyle.textAlign : "left") as "left"|"center"|"right"|"justify",
+              lineHeightOverride: isMultiLine ? 1.0 : undefined,
             });
           }
           continue;

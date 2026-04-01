@@ -28,6 +28,8 @@ export interface SlideElement {
   align?: "left" | "center" | "right" | "justify";
   // Override font size floor for this element (in pt) — bypasses the global minimum
   fontSizeOverridePt?: number;
+  // Override line spacing for this element (replaces CSS line-height derived value)
+  lineHeightOverride?: number;
 }
 
 export interface Bounds {
