@@ -320,21 +320,28 @@ async function walkElement(
           }
 
           // Text box starts after icon + gap.
-          // Use the icon's vertical center as the text y anchor so text aligns with the icon.
+          // For pills (hasBackground): center text vertically in the box.
+          // For list items (no background): position the box so line 1 aligns with the
+          // icon center, then text flows downward. Use valign:top so wrapped lines go down.
           const textX = iconRect.right - rootRect.left + gapPx;
           const textW = bounds.x + bounds.w - textX;
-          const iconCenterY = iconRect.top - rootRect.top + iconRect.height / 2;
-          const textY = hasBackground ? bounds.y : iconCenterY - bounds.h / 2;
           const rawFontPt = parseFloat(style.fontSize) * (13.333 / 1920) * 72;
+          // Estimate line height in px to offset y so line 1 top aligns with icon center
+          const lineHeightPx = parseFloat(style.lineHeight) || bounds.h;
+          const iconCenterY = iconRect.top - rootRect.top + iconRect.height / 2;
+          const textY = hasBackground ? bounds.y : iconCenterY - lineHeightPx / 2;
+          // Give the text box enough height to flow downward (full remaining slide height)
+          const textH = hasBackground ? bounds.h : Math.max(bounds.h, slideRoot.offsetHeight - textY);
           elements.push({
             type: "text",
-            bounds: { x: textX, y: textY, w: textW, h: bounds.h },
+            bounds: { x: textX, y: textY, w: textW, h: textH },
             opacity: readOpacity(style),
             zIndex: zIdx + 1,
             text: textRuns,
-            valign: "middle",
+            valign: hasBackground ? "middle" : "top",
             align: "left",
             fontSizeOverridePt: rawFontPt < 8 ? +rawFontPt.toFixed(2) : undefined,
+            lineHeightOverride: !hasBackground ? 1.1 : undefined,
           });
           continue;
         }
