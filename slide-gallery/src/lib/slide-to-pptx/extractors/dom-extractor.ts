@@ -165,50 +165,6 @@ async function walkElement(
         const cornerRadius = readCornerRadius(style, bounds.w);
         const hasBackground = background.type !== "none";
 
-        // If this element has a direct SVG child (e.g. icon + text pill):
-        // 1. emit a background rect for the pill shape
-        // 2. emit the SVG as an image
-        // 3. emit the text with x offset past the SVG
-        const svgChild = htmlChild.querySelector(":scope > svg") as SVGElement | null;
-        if (svgChild && hasBackground) {
-          // Pill background rect
-          elements.push({
-            type: cornerRadius > 0 ? "rect" : "rect",
-            bounds,
-            background,
-            cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
-            opacity: readOpacity(style),
-            zIndex: readZIndex(style) || order,
-          });
-
-          // SVG icon as image
-          const svgBounds = getBounds(svgChild as unknown as Element, slideRoot);
-          const dataUrl = await svgToDataUrl(svgChild);
-          if (dataUrl) {
-            elements.push({
-              type: "image",
-              bounds: svgBounds,
-              image: { src: "inline-svg", dataUrl },
-              zIndex: (readZIndex(style) || order) + 1,
-              opacity: readOpacity(style),
-            });
-          }
-
-          // Text offset to start after SVG + gap
-          const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
-          const textX = bounds.x + svgBounds.w + gapPx;
-          const textW = bounds.w - svgBounds.w - gapPx;
-          console.log("[pptx] text (icon+text)", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", { x: textX, y: bounds.y, w: textW, h: bounds.h });
-          elements.push({
-            type: "text",
-            bounds: { x: textX, y: bounds.y, w: textW, h: bounds.h },
-            opacity: readOpacity(style),
-            zIndex: (readZIndex(style) || order) + 1,
-            text: textRuns,
-          });
-          continue;
-        }
-
         // For single-line text elements without a background (plain labels), measure
         // actual rendered text width using canvas so the box doesn't span the full grid cell.
         let w = bounds.w;

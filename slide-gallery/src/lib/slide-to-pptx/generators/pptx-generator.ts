@@ -114,7 +114,9 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   const firstStyle = el.text[0].style;
 
   const hasBackground = el.background && el.background.type !== "none";
-  const isSingleLine = el.bounds.h <= 30;
+  // Pills (elements with background) are always single-line by design.
+  // Plain text boxes use height to determine wrapping.
+  const isSingleLine = el.bounds.h <= 30 || hasBackground;
 
   // Only extend width for plain single-line text with no background (labels like "CLIENTE").
   // Pills (hasBackground) use their exact bounds — the background defines the box size.
