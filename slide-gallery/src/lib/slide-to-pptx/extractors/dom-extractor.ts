@@ -214,6 +214,8 @@ async function walkElement(
             opacity: readOpacity(style),
             zIndex: zIdx + 1,
             text: textRuns,
+            valign: "middle",
+            align: "left",
           });
           continue;
         }

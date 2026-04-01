@@ -125,10 +125,9 @@ function renderText(slide: PptxGenJS.Slide, el: SlideElement): void {
   const h = el.bounds.h;
 
   // Pills: center text; plain text: top-align.
-  // Long-text pills (info tags) use left align to avoid overflow.
-  const allText = el.text.map(r => r.text).join("");
-  const valign = hasBackground ? "middle" : "top";
-  const align = hasBackground && allText.length <= 20 ? "center" : firstStyle.textAlign;
+  // Explicit overrides from extractor take precedence.
+  const valign = el.valign ?? (hasBackground ? "middle" : "top");
+  const align = el.align ?? (hasBackground ? "center" : firstStyle.textAlign);
 
   const opts: Record<string, unknown> = {
     x: pxToInchesX(el.bounds.x),

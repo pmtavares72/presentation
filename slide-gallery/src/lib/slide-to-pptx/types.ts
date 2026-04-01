@@ -23,6 +23,9 @@ export interface SlideElement {
   cornerRadius?: number; // px, 0 = sharp corners
   children?: SlideElement[];
   image?: ImageDescriptor;
+  // Explicit alignment overrides (used when CSS context can't be inferred from background alone)
+  valign?: "top" | "middle" | "bottom";
+  align?: "left" | "center" | "right" | "justify";
 }
 
 export interface Bounds {
