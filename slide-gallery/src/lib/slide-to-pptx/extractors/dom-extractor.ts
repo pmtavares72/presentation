@@ -227,47 +227,101 @@ async function walkElement(
           continue;
         }
 
+        // Check for a leading icon element: direct child SVG, or a direct child span/div
+        // that contains an SVG (checkmark circle) or is an empty background dot.
+        // Pattern: <li><span class="obj-check"><svg/></span>text</li>
+        //       or <li><span class="benefit-dot"></span>text</li>
+        //       or <div><svg/>text</div> (icon+text pill)
+        const rootRect = slideRoot.getBoundingClientRect();
         const svgChild = htmlChild.querySelector(":scope > svg") as SVGElement | null;
-        if (svgChild && hasBackground) {
+        const iconSpan = !svgChild
+          ? (Array.from(htmlChild.children).find(c => {
+              const t = c.tagName.toLowerCase();
+              return (t === "span" || t === "div") && (c.querySelector("svg") !== null || (c as HTMLElement).textContent?.trim() === "");
+            }) as HTMLElement | undefined) ?? null
+          : null;
+
+        const iconEl = svgChild ?? iconSpan;
+        if (iconEl) {
           const zIdx = readZIndex(style) || order;
+          const iconRect = iconEl.getBoundingClientRect();
+          const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
 
-          // 1. Pill background rect covering full element bounds
-          elements.push({
-            type: "rect",
-            bounds,
-            background,
-            cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
-            opacity: readOpacity(style),
-            zIndex: zIdx,
-          });
-
-          // 2. SVG icon as image — use getBoundingClientRect relative to slideRoot
-          const rootRect = slideRoot.getBoundingClientRect();
-          const svgRect = svgChild.getBoundingClientRect();
-          const paddingLeft = parseFloat(win.getComputedStyle(htmlChild).paddingLeft) || 0;
-          const svgBounds = {
-            x: bounds.x + paddingLeft,
-            y: svgRect.top - rootRect.top,
-            w: svgRect.width,
-            h: svgRect.height,
-          };
-          const dataUrl = await svgToDataUrl(svgChild, slideRoot.ownerDocument);
-          if (dataUrl && svgBounds.w > 0) {
+          if (hasBackground) {
+            // Emit pill/container background rect
             elements.push({
-              type: "image",
-              bounds: svgBounds,
-              image: { src: "inline-svg", dataUrl },
-              zIndex: zIdx + 1,
+              type: "rect",
+              bounds,
+              background,
+              cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
               opacity: readOpacity(style),
+              zIndex: zIdx,
             });
           }
 
-          // 3. Text box starts after icon + flex gap
-          const gapPx = parseFloat(win.getComputedStyle(htmlChild).gap) || 8;
-          const textX = svgRect.right - rootRect.left + gapPx;
+          // Emit icon: SVG as image, or empty background span as ellipse/rect
+          if (svgChild) {
+            const paddingLeft = parseFloat(win.getComputedStyle(htmlChild).paddingLeft) || 0;
+            const svgBounds = {
+              x: bounds.x + paddingLeft,
+              y: iconRect.top - rootRect.top,
+              w: iconRect.width,
+              h: iconRect.height,
+            };
+            const dataUrl = await svgToDataUrl(svgChild, slideRoot.ownerDocument);
+            if (dataUrl && svgBounds.w > 0) {
+              elements.push({
+                type: "image",
+                bounds: svgBounds,
+                image: { src: "inline-svg", dataUrl },
+                zIndex: zIdx + 1,
+                opacity: readOpacity(style),
+              });
+            }
+          } else if (iconSpan) {
+            const iconStyle = win.getComputedStyle(iconSpan);
+            const iconBg = readBackground(iconStyle);
+            const iconCr = readCornerRadius(iconStyle, iconRect.width);
+            if (iconBg.type !== "none") {
+              const isCircle = iconCr >= iconRect.width / 2 - 2;
+              elements.push({
+                type: isCircle ? "ellipse" : "rect",
+                bounds: {
+                  x: iconRect.left - rootRect.left,
+                  y: iconRect.top - rootRect.top,
+                  w: iconRect.width,
+                  h: iconRect.height,
+                },
+                background: iconBg,
+                opacity: readOpacity(iconStyle),
+                zIndex: zIdx + 1,
+              });
+              // If the icon span itself contains an SVG, render it too
+              const innerSvg = iconSpan.querySelector("svg") as SVGElement | null;
+              if (innerSvg) {
+                const innerRect = innerSvg.getBoundingClientRect();
+                const innerDataUrl = await svgToDataUrl(innerSvg, slideRoot.ownerDocument);
+                if (innerDataUrl && innerRect.width > 0) {
+                  elements.push({
+                    type: "image",
+                    bounds: {
+                      x: innerRect.left - rootRect.left,
+                      y: innerRect.top - rootRect.top,
+                      w: innerRect.width,
+                      h: innerRect.height,
+                    },
+                    image: { src: "inline-svg", dataUrl: innerDataUrl },
+                    zIndex: zIdx + 2,
+                    opacity: readOpacity(style),
+                  });
+                }
+              }
+            }
+          }
+
+          // Text box starts after icon + gap
+          const textX = iconRect.right - rootRect.left + gapPx;
           const textW = bounds.x + bounds.w - textX;
-          console.log("[pptx] text (icon+pill)", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", { x: textX, y: bounds.y, w: textW, h: bounds.h });
-          // Use true px→pt conversion without the 8pt floor for icon+pill labels
           const rawFontPt = parseFloat(style.fontSize) * (13.333 / 1920) * 72;
           elements.push({
             type: "text",
@@ -275,9 +329,9 @@ async function walkElement(
             opacity: readOpacity(style),
             zIndex: zIdx + 1,
             text: textRuns,
-            valign: "middle",
+            valign: hasBackground ? "middle" : "top",
             align: "left",
-            fontSizeOverridePt: +rawFontPt.toFixed(2),
+            fontSizeOverridePt: rawFontPt < 8 ? +rawFontPt.toFixed(2) : undefined,
           });
           continue;
         }
