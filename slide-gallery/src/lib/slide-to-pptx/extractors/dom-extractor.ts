@@ -208,6 +208,8 @@ async function walkElement(
           const textX = svgRect.right - rootRect.left;
           const textW = bounds.x + bounds.w - textX;
           console.log("[pptx] text (icon+pill)", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", { x: textX, y: bounds.y, w: textW, h: bounds.h });
+          // Use true px→pt conversion without the 8pt floor for icon+pill labels
+          const rawFontPt = parseFloat(style.fontSize) * (13.333 / 1920) * 72;
           elements.push({
             type: "text",
             bounds: { x: textX, y: bounds.y, w: textW, h: bounds.h },
@@ -216,6 +218,7 @@ async function walkElement(
             text: textRuns,
             valign: "middle",
             align: "left",
+            fontSizeOverridePt: +rawFontPt.toFixed(2),
           });
           continue;
         }

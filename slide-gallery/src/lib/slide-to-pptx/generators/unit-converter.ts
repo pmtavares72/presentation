@@ -49,9 +49,10 @@ export function pxToPoints(px: number): number {
 // The slide is designed at 1920px wide = 13.333 inches wide.
 // A font at N px in slide layout coordinates occupies N×(13.333/1920) inches,
 // which is N×(13.333/1920)×72 points.
-// Minimum of 6pt — preserves relative size differences between small labels.
+// Minimum of 8pt — very small HTML fonts (e.g. 13px on a 1920px canvas = 6.5pt)
+// are unreadably tiny in PowerPoint at print size.
 export function fontPxToPoints(px: number): number {
-  return Math.max(6, +(px * scaleX * 72).toFixed(2));
+  return Math.max(8, +(px * scaleX * 72).toFixed(2));
 }
 
 // CSS px → PowerPoint EMU for fine shadow/offset control

@@ -26,6 +26,8 @@ export interface SlideElement {
   // Explicit alignment overrides (used when CSS context can't be inferred from background alone)
   valign?: "top" | "middle" | "bottom";
   align?: "left" | "center" | "right" | "justify";
+  // Override font size floor for this element (in pt) — bypasses the global minimum
+  fontSizeOverridePt?: number;
 }
 
 export interface Bounds {
