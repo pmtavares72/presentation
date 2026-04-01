@@ -15,8 +15,10 @@ export function readTextRuns(el: Element, win: Window = window): TextRun[] {
 function walkTextNodes(node: Node, runs: TextRun[], win: Window) {
   for (const child of Array.from(node.childNodes)) {
     if (child.nodeType === Node.TEXT_NODE) {
-      const text = child.textContent || "";
-      if (text.trim() === "") continue;
+      // Collapse whitespace: browsers ignore leading/trailing whitespace in HTML text nodes.
+      // We must do the same — otherwise indentation becomes literal spaces in PPTX.
+      const text = (child.textContent || "").replace(/\s+/g, " ").trim();
+      if (text === "") continue;
 
       const parentEl = child.parentElement;
       if (!parentEl) continue;
