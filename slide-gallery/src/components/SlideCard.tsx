@@ -1,33 +1,48 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import SlideIframe from "./SlideIframe";
 import ExportPptxButton from "./ExportPptxButton";
 import type { SlideMetadata } from "@/data/slides";
 
-export default function SlideCard({ slide }: { slide: SlideMetadata }) {
+function IconSparkle() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 18 18" fill="none">
+      <path d="M9 1L10.5 6.5L16 8L10.5 9.5L9 15L7.5 9.5L2 8L7.5 6.5L9 1Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+export default function SlideCard({
+  slide,
+  showGenerate,
+}: {
+  slide: SlideMetadata;
+  showGenerate?: boolean;
+}) {
+  const router = useRouter();
+
   return (
     <Link
       href={`/slides/${slide.slug}`}
       className="group relative block rounded-card bg-surface-lowest overflow-hidden shadow-ambient transition-all duration-300 ease-out hover:shadow-ambient-hover hover:scale-[1.02] hover:-translate-y-1"
     >
-      {/* Light leak accent — warm glow in the top-right */}
+      {/* Light leak accent */}
       <div
         className="pointer-events-none absolute -top-10 -right-10 z-10 h-36 w-36 rounded-full opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
-          background:
-            "radial-gradient(circle, rgba(254,137,71,0.18) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(254,137,71,0.18) 0%, transparent 70%)",
         }}
       />
 
-      {/* Thumbnail — live HTML slide preview */}
+      {/* Thumbnail */}
       <div className="relative">
         <SlideIframe filename={slide.filename} mode="thumbnail" />
-        {/* Soft vignette at the bottom of the thumbnail for depth */}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/60 to-transparent" />
       </div>
 
-      {/* Card body — compact but with title + description */}
+      {/* Card body */}
       <div className="relative px-5 pt-3 pb-3.5">
         {slide.client && (
           <span className="font-body text-[10px] font-medium text-on-surface-variant/60 uppercase tracking-wider">
@@ -51,7 +66,23 @@ export default function SlideCard({ slide }: { slide: SlideMetadata }) {
               </span>
             ))}
           </div>
-          <ExportPptxButton filename={slide.filename} title={slide.title} variant="card" />
+          <div className="flex items-center gap-2">
+            {showGenerate && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  router.push(`/generate/${slide.slug}`);
+                }}
+                className="shrink-0 flex items-center gap-1.5 rounded-full px-2.5 py-1 font-body text-[10px] font-medium text-primary bg-primary/10 transition-all duration-200 hover:bg-primary/20 hover:scale-105"
+                title="Generar variación con IA"
+              >
+                <IconSparkle />
+                Generar
+              </button>
+            )}
+            <ExportPptxButton filename={slide.filename} title={slide.title} variant="card" />
+          </div>
         </div>
       </div>
     </Link>
