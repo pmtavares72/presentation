@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Fases de Proyecto — Timestamp Development</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #CE0E2D;
+    --bg: #F2F2F2;
+    --white: #FFFFFF;
+    --text: #464646;
+    --text-light: #767677;
+    --text-muted: #888899;
+
+    --p1: #CE0E2D;
+    --p2: #E05A00;
+    --p3: #C47A00;
+    --p4: #8B6914;
+    --p5: #3D7A3D;
+    --p6: #1A6B5A;
+    --p7: #2D5A8E;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    margin: 0; padding: 0;
+    background: #ddd;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .slide {
+    width: 1920px;
+    height: 1080px;
+    position: relative;
+    overflow: hidden;
+    transform-origin: top left;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+
+  /* ============================================
+     HEADER
+     ============================================ */
+  .header-area {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    flex-shrink: 0;
+    background:
+      linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.75) 50%, rgba(255,255,255,0.4) 100%),
+      linear-gradient(120deg, #f5f5f5 0%, #e8e8e8 100%);
+    overflow: hidden;
+  }
+
+  .header-area::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -40px;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: rgba(206, 14, 45, 0.04);
+  }
+  .header-area::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; right: 240px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(206, 14, 45, 0.03);
+  }
+
+  .header-content {
+    position: relative; z-index: 2;
+    padding: 48px 80px 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .brand-line {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 16px; color: var(--text-muted);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+  }
+  .brand-logo img {
+    height: 24px; width: auto; display: block;
+  }
+
+  .pill-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 38px;
+    background: var(--red);
+    border-radius: 50px;
+    color: var(--white);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 20px rgba(206, 14, 45, 0.28);
+  }
+
+  .header-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 60px;
+    flex: 1;
+  }
+
+  .header-identity {
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -1px;
+    line-height: 1.0;
+    margin-bottom: 10px;
+  }
+  .header-subtitle {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--text-light);
+    line-height: 1.8;
+    max-width: 560px;
+  }
+
+  .header-stats {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 18px;
+  }
+  .stat-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--red);
+    border-radius: 14px;
+    padding: 12px 24px;
+  }
+  .stat-number {
+    font-size: 28px; font-weight: 700;
+    color: var(--white); line-height: 1;
+  }
+  .stat-label {
+    font-size: 13px; font-weight: 400;
+    color: rgba(255,255,255,0.85);
+    line-height: 1.3;
+  }
+
+  /* ============================================
+     PHASES AREA
+     ============================================ */
+  .phases-area {
+    flex: 1;
+    padding: 24px 80px 0;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 20px;
+    min-height: 0;
+  }
+
+  .phase-card {
+    background: var(--white);
+    border-radius: 22px;
+    padding: 0;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .phase-accent {
+    height: 5px;
+    flex-shrink: 0;
+    border-radius: 0;
+  }
+  .p1 .phase-accent { background: var(--p1); }
+  .p2 .phase-accent { background: var(--p2); }
+  .p3 .phase-accent { background: var(--p3); }
+  .p4 .phase-accent { background: var(--p4); }
+  .p5 .phase-accent { background: var(--p5); }
+  .p6 .phase-accent { background: var(--p6); }
+  .p7 .phase-accent { background: var(--p7); }
+
+  .phase-inner {
+    padding: 22px 24px 20px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .phase-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 14px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    margin-bottom: 12px;
+    align-self: flex-start;
+  }
+  .p1 .phase-pill { background: rgba(206,14,45,0.08); color: var(--p1); }
+  .p2 .phase-pill { background: rgba(224,90,0,0.08); color: var(--p2); }
+  .p3 .phase-pill { background: rgba(196,122,0,0.08); color: var(--p3); }
+  .p4 .phase-pill { background: rgba(139,105,20,0.08); color: var(--p4); }
+  .p5 .phase-pill { background: rgba(61,122,61,0.08); color: var(--p5); }
+  .p6 .phase-pill { background: rgba(26,107,90,0.08); color: var(--p6); }
+  .p7 .phase-pill { background: rgba(45,90,142,0.08); color: var(--p7); }
+
+  .phase-title {
+    font-size: 16px; font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 14px;
+  }
+
+  .phase-tasks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .phase-tasks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-light);
+    line-height: 1.45;
+  }
+  .task-dot {
+    width: 6px; height: 6px;
+    min-width: 6px;
+    border-radius: 50%;
+    margin-top: 6px;
+    opacity: 0.6;
+  }
+  .p1 .task-dot { background: var(--p1); }
+  .p2 .task-dot { background: var(--p2); }
+  .p3 .task-dot { background: var(--p3); }
+  .p4 .task-dot { background: var(--p4); }
+  .p5 .task-dot { background: var(--p5); }
+  .p6 .task-dot { background: var(--p6); }
+  .p7 .task-dot { background: var(--p7); }
+
+  /* ============================================
+     GANTT
+     ============================================ */
+  .gantt-area {
+    flex-shrink: 0;
+    padding: 16px 80px 0;
+  }
+
+  .gantt-box {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 18px 28px 16px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  }
+
+  .gantt-header {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0;
+    margin-bottom: 8px;
+  }
+  .gantt-header-empty { /* spacer */ }
+  .gantt-weeks {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .gantt-week-label {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.3px;
+  }
+
+  .gantt-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .gantt-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0;
+    align-items: center;
+    height: 22px;
+  }
+  .gantt-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-light);
+    text-align: right;
+    padding-right: 14px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .gantt-track {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    height: 100%;
+  }
+  .gantt-bar {
+    border-radius: 6px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .gantt-bar span {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    letter-spacing: 0.3px;
+  }
+  .gantt-empty { /* empty cell */ }
+
+  .gb1 { background: var(--p1); }
+  .gb2 { background: var(--p2); }
+  .gb3 { background: var(--p3); }
+  .gb4 { background: var(--p4); }
+  .gb5 { background: var(--p5); }
+  .gb6 { background: var(--p6); }
+  .gb7 { background: var(--p7); }
+
+  /* ============================================
+     BOTTOM BAR
+     ============================================ */
+  .tech-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 80px 24px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+  .tech-bar-label {
+    font-size: 15px; font-weight: 600;
+    color: var(--red);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-right: 24px;
+  }
+  .tech-chip {
+    padding: 8px 22px;
+    background: var(--white);
+    border-radius: 50px;
+    font-size: 15px; font-weight: 500;
+    color: var(--text);
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+
+  <!-- HEADER -->
+  <div class="header-area">
+    <div class="header-content">
+      <div class="header-top">
+        <div class="brand-line">
+          <span class="brand-logo"><img src="timestamp-logo.png" alt="Timestamp"></span>
+          <span>|</span>
+          <span>Development Projects</span>
+        </div>
+        <div class="pill-badge">PROYECTO</div>
+      </div>
+      <div class="header-body">
+        <div class="header-identity">
+          <div class="header-title">Fases de Proyecto</div>
+          <p class="header-subtitle">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam.</p>
+          <div class="header-stats">
+            <div class="stat-box"><span class="stat-number">7</span><span class="stat-label">Semanas<br>de Sprint</span></div>
+            <div class="stat-box"><span class="stat-number">7</span><span class="stat-label">Fases<br>del Proyecto</span></div>
+            <div class="stat-box"><span class="stat-number">Ágil</span><span class="stat-label">Metodología<br>de Trabajo</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE CARDS -->
+  <div class="phases-area">
+
+    <div class="phase-card p1">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 1</div>
+        <div class="phase-title">Arquitectura & Setup</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>Infraestructura y entornos</li>
+          <li><span class="task-dot"></span>Modelo de datos</li>
+          <li><span class="task-dot"></span>Integración base JDE</li>
+          <li><span class="task-dot"></span>Auth y permisos por rol</li>
+          <li><span class="task-dot"></span>CI/CD pipeline</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card p2">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 2</div>
+        <div class="phase-title">Cuentas & Dashboard</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>Dashboard KPIs tiempo real</li>
+          <li><span class="task-dot"></span>Listado cuentas con filtros</li>
+          <li><span class="task-dot"></span>Ficha detalle cliente</li>
+          <li><span class="task-dot"></span>Indicadores de riesgo</li>
+          <li><span class="task-dot"></span>Contactos y condiciones</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card p3">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 3</div>
+        <div class="phase-title">Gestión de Pedidos</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>Listado pedidos + JDE</li>
+          <li><span class="task-dot"></span>Wizard creación 4 pasos</li>
+          <li><span class="task-dot"></span>Sugerencias y promociones</li>
+          <li><span class="task-dot"></span>Detalle con logs de API</li>
+          <li><span class="task-dot"></span>Auto-guardado y reintentos</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card p4">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 4</div>
+        <div class="phase-title">Catálogo & Precios</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>Grid productos con familias</li>
+          <li><span class="task-dot"></span>Stock en tiempo real (JDE)</li>
+          <li><span class="task-dot"></span>Precios sincronizados</li>
+          <li><span class="task-dot"></span>Búsqueda avanzada</li>
+          <li><span class="task-dot"></span>Lógica comercial por cliente</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card p5">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 5</div>
+        <div class="phase-title">Portal de Clientes</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>Login y acceso seguro</li>
+          <li><span class="task-dot"></span>Dashboard del cliente</li>
+          <li><span class="task-dot"></span>Seguimiento de pedidos</li>
+          <li><span class="task-dot"></span>Descarga de albaranes</li>
+          <li><span class="task-dot"></span>Consulta de datos y docs</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card p6">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 6</div>
+        <div class="phase-title">App Móvil & Offline</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>PWA para comerciales</li>
+          <li><span class="task-dot"></span>Creación pedidos offline</li>
+          <li><span class="task-dot"></span>Cola de sincronización</li>
+          <li><span class="task-dot"></span>Notificaciones push</li>
+          <li><span class="task-dot"></span>Modo campo sin cobertura</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase-card p7">
+      <div class="phase-accent"></div>
+      <div class="phase-inner">
+        <div class="phase-pill">Fase 7</div>
+        <div class="phase-title">QA & Go-Live</div>
+        <ul class="phase-tasks">
+          <li><span class="task-dot"></span>Testing E2E completo</li>
+          <li><span class="task-dot"></span>Migración datos Salesforce</li>
+          <li><span class="task-dot"></span>UAT con usuarios piloto</li>
+          <li><span class="task-dot"></span>Formación de equipos</li>
+          <li><span class="task-dot"></span>Deploy a producción</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- GANTT -->
+  <div class="gantt-area">
+    <div class="gantt-box">
+      <div class="gantt-header">
+        <div class="gantt-header-empty"></div>
+        <div class="gantt-weeks">
+          <div class="gantt-week-label">Semana 1</div>
+          <div class="gantt-week-label">Semana 2</div>
+          <div class="gantt-week-label">Semana 3</div>
+          <div class="gantt-week-label">Semana 4</div>
+          <div class="gantt-week-label">Semana 5</div>
+          <div class="gantt-week-label">Semana 6</div>
+          <div class="gantt-week-label">Semana 7</div>
+        </div>
+      </div>
+      <div class="gantt-rows">
+        <div class="gantt-row">
+          <div class="gantt-label">Arquitectura & Setup</div>
+          <div class="gantt-track">
+            <div class="gantt-bar gb1"><span>F1</span></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Cuentas & Dashboard</div>
+          <div class="gantt-track">
+            <div class="gantt-empty"></div>
+            <div class="gantt-bar gb2"><span>F2</span></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Gestión de Pedidos</div>
+          <div class="gantt-track">
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-bar gb3" style="grid-column: span 2"><span>F3 — S3/S4</span></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Catálogo & Precios</div>
+          <div class="gantt-track">
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-bar gb4"><span>F4</span></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">Portal & Mobile</div>
+          <div class="gantt-track">
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-bar gb5"><span>F5</span></div>
+            <div class="gantt-bar gb6"><span>F6</span></div>
+            <div class="gantt-empty"></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-label">QA & Go-Live</div>
+          <div class="gantt-track">
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-empty"></div>
+            <div class="gantt-bar gb7"><span>F7</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="tech-bar">
+    <span class="tech-bar-label">Metodología</span>
+    <span class="tech-chip">Sprints Semanales</span>
+    <span class="tech-chip">Integración Continua</span>
+    <span class="tech-chip">CI/CD</span>
+    <span class="tech-chip">Code Review</span>
+    <span class="tech-chip">UAT por Fase</span>
+    <span class="tech-chip">Entrega Incremental</span>
+  </div>
+
+</div>
+<script>
+  function scaleSlide() {
+    const slide = document.querySelector('.slide');
+    const scaleX = window.innerWidth / 1920;
+    const scaleY = window.innerHeight / 1080;
+    const scale = Math.min(scaleX, scaleY);
+    const offsetX = (window.innerWidth - 1920 * scale) / 2;
+    const offsetY = (window.innerHeight - 1080 * scale) / 2;
+    slide.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+  }
+  scaleSlide();
+  window.addEventListener('resize', scaleSlide);
+</script>
+</body>
+</html>

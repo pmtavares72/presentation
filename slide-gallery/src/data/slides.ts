@@ -9,13 +9,12 @@ export interface SlideMetadata {
 
 export const slides: SlideMetadata[] = [
   {
-    slug: "incarlopsa-crm",
-    title: "Incarlopsa CRM",
+    slug: "fases-de-proyecto",
+    title: "Fases de Proyecto",
     description:
-      "Plan de proyecto CRM a medida con timeline de 7 fases y diagrama Gantt.",
-    filename: "incarlopsa_crm_fases.html",
-    tags: ["CRM", "Timeline", "Gantt"],
-    client: "Incarlopsa",
+      "Plan de proyecto con timeline de 7 fases y diagrama Gantt.",
+    filename: "fases_de_proyecto.html",
+    tags: ["Timeline", "Gantt", "Fases"],
   },
   {
     slug: "caso-de-uso",
