@@ -449,7 +449,8 @@ async function walkElement(
           }
         }
         const finalBounds = w !== bounds.w ? { ...bounds, w } : bounds;
-        console.log("[pptx] text", JSON.stringify(textRuns.map(r => r.text).join("")), "bounds:", finalBounds);
+        const rawFontPt = parseFloat(style.fontSize) * (13.333 / 1920) * 72;
+        const textAlign = style.textAlign as "left" | "center" | "right" | "justify";
 
         elements.push({
           type: "text",
@@ -459,6 +460,8 @@ async function walkElement(
           text: textRuns,
           background: hasBackground ? background : undefined,
           cornerRadius: cornerRadius > 0 ? cornerRadius : undefined,
+          align: ["left","center","right","justify"].includes(textAlign) ? textAlign : undefined,
+          fontSizeOverridePt: rawFontPt < 8 ? +rawFontPt.toFixed(2) : undefined,
         });
         continue;
       }
