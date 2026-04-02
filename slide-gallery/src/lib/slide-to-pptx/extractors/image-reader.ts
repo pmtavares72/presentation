@@ -83,6 +83,56 @@ export async function svgToDataUrl(
   }
 }
 
+// Rasterize any DOM element to a PNG data URL using html2canvas.
+// The element is captured in-place, so parent clipping (overflow:hidden + border-radius)
+// is respected — the resulting image looks exactly like the browser renders it.
+export async function elementToDataUrl(
+  el: HTMLElement,
+  win: Window = window
+): Promise<string | undefined> {
+  try {
+    const rect = el.getBoundingClientRect();
+    const w = Math.round(rect.width);
+    const h = Math.round(rect.height);
+    if (w === 0 || h === 0) return undefined;
+
+    const html2canvas = (await import("html2canvas")).default;
+    // Capture the *parent* element so that overflow:hidden + border-radius clipping
+    // is included. Then crop the canvas to the child's relative position.
+    const parent = el.parentElement ?? el;
+    const parentRect = parent.getBoundingClientRect();
+
+    const canvas = await html2canvas(parent, {
+      useCORS: true,
+      allowTaint: true,
+      x: 0,
+      y: 0,
+      width: Math.round(parentRect.width),
+      height: Math.round(parentRect.height),
+      windowWidth: win.innerWidth,
+      windowHeight: win.innerHeight,
+      scrollX: 0,
+      scrollY: 0,
+      scale: 1,
+      backgroundColor: null,
+      logging: false,
+    });
+
+    // Crop to child bounds relative to parent
+    const cx = Math.round(rect.left - parentRect.left);
+    const cy = Math.round(rect.top - parentRect.top);
+    const cropped = win.document.createElement("canvas");
+    cropped.width = w;
+    cropped.height = h;
+    const ctx = cropped.getContext("2d");
+    if (!ctx) return undefined;
+    ctx.drawImage(canvas, cx, cy, w, h, 0, 0, w, h);
+    return cropped.toDataURL("image/png");
+  } catch {
+    return undefined;
+  }
+}
+
 // Read image descriptor from an <img> element
 export async function readImage(
   img: HTMLImageElement,

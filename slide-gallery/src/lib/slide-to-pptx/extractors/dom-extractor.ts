@@ -17,7 +17,7 @@ import {
   readZIndex,
 } from "./style-reader";
 import { readTextRuns } from "./text-reader";
-import { readImage, svgToDataUrl } from "./image-reader";
+import { readImage, svgToDataUrl, elementToDataUrl } from "./image-reader";
 
 export interface ExtractOptions {
   includeHidden?: boolean;
@@ -128,7 +128,53 @@ async function walkElement(
 
     if (!options.includeHidden && !isVisible(style)) continue;
 
-    const bounds = getBounds(htmlChild, slideRoot);
+    let bounds = getBounds(htmlChild, slideRoot);
+
+    const parentStyle = win.getComputedStyle(el as HTMLElement);
+    const parentHasOverflowHidden = parentStyle.overflow === "hidden" || parentStyle.overflowX === "hidden" || parentStyle.overflowY === "hidden";
+
+    // Detect accent bars early (before clipping) so we can skip geometric inset for them —
+    // they will be rasterized via html2canvas which handles clipping natively.
+    const accentBackground = readBackground(style);
+    const isAccentBar =
+      accentBackground.type === "solid" &&
+      bounds.h <= 12 &&
+      htmlChild.children.length === 0 &&
+      !readTextRuns(htmlChild, win).some((r) => r.text.trim());
+
+    // Clip bounds to parent if parent has overflow:hidden (mirrors CSS clip behaviour in PPTX).
+    // For accent bars we only do basic rect clip (no geometric inset) — they are rasterized.
+    if (parentHasOverflowHidden) {
+      const parentBounds = getBounds(el as HTMLElement, slideRoot);
+      const parentRadius = readCornerRadius(parentStyle, parentBounds.w);
+
+      // Basic rect clip
+      const x1 = Math.max(bounds.x, parentBounds.x);
+      const y1 = Math.max(bounds.y, parentBounds.y);
+      const x2 = Math.min(bounds.x + bounds.w, parentBounds.x + parentBounds.w);
+      const y2 = Math.min(bounds.y + bounds.h, parentBounds.y + parentBounds.h);
+      bounds = { x: x1, y: y1, w: Math.max(0, x2 - x1), h: Math.max(0, y2 - y1) };
+
+      // Extra horizontal inset for rounded-corner parents — skip for accent bars
+      // since they are rasterized and handle clipping via html2canvas.
+      if (!isAccentBar && parentRadius > 0 && bounds.h > 0) {
+        const R = parentRadius;
+        const dyTop = bounds.y - parentBounds.y;
+        const dyBottom = (parentBounds.y + parentBounds.h) - (bounds.y + bounds.h);
+        const rowTop = Math.min(dyTop + bounds.h, R);
+        const insetTop = rowTop > dyTop
+          ? R - Math.sqrt(Math.max(0, R * R - (R - rowTop) * (R - rowTop)))
+          : 0;
+        const rowBottom = Math.min(dyBottom + bounds.h, R);
+        const insetBottom = rowBottom > dyBottom
+          ? R - Math.sqrt(Math.max(0, R * R - (R - rowBottom) * (R - rowBottom)))
+          : 0;
+        const inset = Math.ceil(Math.max(insetTop, insetBottom));
+        if (inset > 0) {
+          bounds = { x: bounds.x + inset, y: bounds.y, w: Math.max(0, bounds.w - inset * 2), h: bounds.h };
+        }
+      }
+    }
 
     if (bounds.w < minSize || bounds.h < minSize) continue;
 
@@ -145,6 +191,26 @@ async function walkElement(
       // ── contentOnly mode ──────────────────────────────────────────────────
       // SVG icons (checkmarks, decorative) are already in background image — skip
       if (tag === "svg") continue;
+
+      // Accent-bar rasterization: thin colored rect (≤ 12px tall), no text, no children,
+      // inside a parent with overflow:hidden + border-radius.
+      // Rasterize via html2canvas so the parent's rounded corners clip it correctly in the PNG.
+      if (isAccentBar && parentHasOverflowHidden) {
+        const parentRadius = readCornerRadius(parentStyle, (el as HTMLElement).offsetWidth || bounds.w);
+        if (parentRadius > 0) {
+          const dataUrl = await elementToDataUrl(htmlChild, win);
+          if (dataUrl) {
+            elements.push({
+              type: "image",
+              bounds,
+              image: { src: "accent-bar", dataUrl },
+              zIndex: readZIndex(style) || order,
+              opacity: readOpacity(style),
+            });
+            continue;
+          }
+        }
+      }
 
       // If this element contains any <img> descendants, always recurse so each
       // child gets its own bounds (prevents text boxes overlapping the logo).
@@ -456,6 +522,33 @@ async function walkElement(
         Math.abs(bounds.w - bounds.h) < 4 &&
         cornerRadius >= bounds.w / 2 - 2;
 
+      // Accent-bar rasterization: thin colored rect (≤ 12px tall) with no text,
+      // inside a parent with overflow:hidden + border-radius. Rasterize it via
+      // html2canvas so the parent's rounded corners clip it correctly in the PNG.
+      const isAccentBar =
+        !hasDirectText &&
+        !isCircle &&
+        bounds.h <= 12 &&
+        background.type === "solid" &&
+        htmlChild.children.length === 0;
+
+      if (isAccentBar && parentStyle.overflow === "hidden") {
+        const parentRadius = readCornerRadius(parentStyle, (el as HTMLElement).offsetWidth || bounds.w);
+        if (parentRadius > 0) {
+          const dataUrl = await elementToDataUrl(htmlChild, win);
+          if (dataUrl) {
+            elements.push({
+              type: "image",
+              bounds,
+              image: { src: "accent-bar", dataUrl },
+              zIndex,
+              opacity,
+            });
+            continue;
+          }
+        }
+      }
+
       elements.push({
         type: isCircle ? "ellipse" : hasDirectText ? "text" : "rect",
         bounds,
@@ -467,6 +560,7 @@ async function walkElement(
         zIndex,
         text: hasDirectText ? textRuns : undefined,
       });
+
     }
 
     if (htmlChild.children.length > 0 && !isLeafTextElement(htmlChild, win)) {
